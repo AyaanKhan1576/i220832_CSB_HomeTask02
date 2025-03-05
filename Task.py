@@ -7,5 +7,3 @@ print("This was added to main and feature branch isnt updated yet")
 print("Testiing")
 
 print (THIS IS A BUG)
-
-Print (BuG)
