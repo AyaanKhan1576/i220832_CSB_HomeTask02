@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # Backend (Node.js API)
+  backend:
+    image: my-backend:latest
+    container_name: node-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - ml-api
+    environment:
+      DATABASE_URL: postgres://myuser:mypassword@db:5432/mydatabase
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ML_MODEL_PORT: 8080
+    ports:
+      - "5000:5000"
+
+  # Frontend (React)
+  frontend:
+    image: my-frontend:latest
+    container_name: react-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+  # Machine Learning Model API (Python)
+  ml-api:
+    image: my-ml-api:latest
+    container_name: python-ml-api
+    build:
+      context: ./ml-api
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
